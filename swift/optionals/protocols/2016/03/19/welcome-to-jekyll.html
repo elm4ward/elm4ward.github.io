@@ -6,12 +6,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Mauersegler.swift</title>
-  <meta name="description" content="In the log term, this will be a blog about using Swift.  My Name is Elmar Kretzer.  I am partner and engineer at symentis.com.  I am co-organizer of iOS Munich Meetup group.
-">
+  <title>Kinda unwrap Optionals</title>
+  <meta name="description" content="Optionals. Sometimes it is a little bit ugly to force unwrap things.">
 
   <link rel="stylesheet" href="/css/main.css">
-  <link rel="canonical" href="http://www.elmarkretzer.de/">
+  <link rel="canonical" href="http://www.elmarkretzer.de/swift/optionals/protocols/2016/03/19/welcome-to-jekyll.html">
   <link rel="alternate" type="application/rss+xml" title="Mauersegler.swift" href="http://www.elmarkretzer.de/feed.xml">
 </head>
 
@@ -55,25 +54,35 @@
 
     <div class="page-content">
       <div class="wrapper">
-        <div class="home">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 
-  <h1 class="page-heading">Posts</h1>
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">Kinda unwrap Optionals</h1>
+    <p class="post-meta"><time datetime="2016-03-19T14:29:14+01:00" itemprop="datePublished">Mar 19, 2016</time></p>
+  </header>
 
-  <ul class="post-list">
-    
-      <li>
-        <span class="post-meta">Mar 19, 2016</span>
+  <div class="post-content" itemprop="articleBody">
+    <p>Optionals. Sometimes it is a little bit ugly to force unwrap things.</p>
 
-        <h2>
-          <a class="post-link" href="/swift/optionals/protocols/2016/03/19/welcome-to-jekyll.html">Kinda unwrap Optionals</a>
-        </h2>
-      </li>
-    
-  </ul>
+<p>You know there is a value. You add a <code class="highlighter-rouge">!</code> 
+  But then things change and your code breaks.
+  So in case you need to gracefully handle this, you add <code class="highlighter-rouge">a.maybeVal ?? ""</code>.</p>
 
-  <p class="rss-subscribe">subscribe <a href="/feed.xml">via RSS</a></p>
+<p>Much better, but possibly a lot to read when used in combination with other stuff.</p>
 
-</div>
+<p><code class="highlighter-rouge">let r4 = (a1.a ?? "") + (a2.a ?? "")</code></p>
+
+<p>But swift gives us protocols. 🎉
+  So wouldnt it be nice to (maybe) have another option …</p>
+
+<noscript><pre>400: Invalid request
+</pre></noscript>
+<script src="https://gist.github.com/ca69c7114926ff9c72ec.js"> </script>
+
+
+  </div>
+
+</article>
 
       </div>
     </div>

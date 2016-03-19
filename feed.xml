@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Mauersegler.swift</title>
+    <description>In the log term, this will be a blog about using Swift.  My Name is Elmar Kretzer.  I am partner and engineer at symentis.com.  I am co-organizer of iOS Munich Meetup group.
+</description>
+    <link>http://www.elmarkretzer.de/</link>
+    <atom:link href="http://www.elmarkretzer.de/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Sat, 19 Mar 2016 14:48:30 +0100</pubDate>
+    <lastBuildDate>Sat, 19 Mar 2016 14:48:30 +0100</lastBuildDate>
+    <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>Kinda unwrap Optionals</title>
+        <description>&lt;p&gt;Optionals. Sometimes it is a little bit ugly to force unwrap things.&lt;/p&gt;
+
+&lt;p&gt;You know there is a value. You add a &lt;code class=&quot;highlighter-rouge&quot;&gt;!&lt;/code&gt; 
+  But then things change and your code breaks.
+  So in case you need to gracefully handle this, you add &lt;code class=&quot;highlighter-rouge&quot;&gt;a.maybeVal ?? &quot;&quot;&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Much better, but possibly a lot to read when used in combination with other stuff.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;let r4 = (a1.a ?? &quot;&quot;) + (a2.a ?? &quot;&quot;)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;But swift gives us protocols. 🎉
+  So wouldnt it be nice to (maybe) have another option …&lt;/p&gt;
+
+&lt;noscript&gt;&lt;pre&gt;400: Invalid request
+&lt;/pre&gt;&lt;/noscript&gt;
+&lt;script src=&quot;https://gist.github.com/ca69c7114926ff9c72ec.js&quot;&gt; &lt;/script&gt;
+
+</description>
+        <pubDate>Sat, 19 Mar 2016 14:29:14 +0100</pubDate>
+        <link>http://www.elmarkretzer.de/swift/optionals/protocols/2016/03/19/welcome-to-jekyll.html</link>
+        <guid isPermaLink="true">http://www.elmarkretzer.de/swift/optionals/protocols/2016/03/19/welcome-to-jekyll.html</guid>
+        
+        
+        <category>swift</category>
+        
+        <category>optionals</category>
+        
+        <category>protocols</category>
+        
+      </item>
+    
+  </channel>
+</rss>
