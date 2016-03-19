@@ -2,12 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Mauersegler.swift</title>
-    <description>In the long term, this will be a blog about using Swift.  My Name is Elmar Kretzer.  I am partner and engineer at symentis.com, co-organizer of iOS Munich Meetup group.
+    <description>In the long term, this will be a blog about using Swift. 
 </description>
     <link>http://www.elmarkretzer.de/</link>
     <atom:link href="http://www.elmarkretzer.de/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 19 Mar 2016 15:00:05 +0100</pubDate>
-    <lastBuildDate>Sat, 19 Mar 2016 15:00:05 +0100</lastBuildDate>
+    <pubDate>Sat, 19 Mar 2016 16:07:01 +0100</pubDate>
+    <lastBuildDate>Sat, 19 Mar 2016 16:07:01 +0100</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
     
       <item>
