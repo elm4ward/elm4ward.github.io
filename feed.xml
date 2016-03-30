@@ -4,11 +4,96 @@
     <title>Mauersegler.swift</title>
     <description>In the long term, this will be a blog about using Swift. 
 </description>
-    <link>http://www.elmarkretzer.de/</link>
-    <atom:link href="http://www.elmarkretzer.de/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 19 Mar 2016 16:56:47 +0100</pubDate>
-    <lastBuildDate>Sat, 19 Mar 2016 16:56:47 +0100</lastBuildDate>
+    <link>http://elm4ward.github.io/</link>
+    <atom:link href="http://elm4ward.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Wed, 30 Mar 2016 23:23:30 +0200</pubDate>
+    <lastBuildDate>Wed, 30 Mar 2016 23:23:30 +0200</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>Monads are yay &amp; Comonads are yayer</title>
+        <description>&lt;h1 id=&quot;monads-comonads-come-on-go-nuts&quot;&gt;Monads, Comonads, come on, go nuts&lt;/h1&gt;
+
+&lt;p&gt;There is a stormy discussion about writing Swift in a functional manner. I am not gonna dive deep into it. But i like to demonstrate one particular piece of Type, coming out of the FP world: The &lt;em&gt;Commonad&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Even if Swift is missing so called Higher Kinded Types &lt;em&gt;(TypeConstructors or Types that create Types a.k.a. * -&amp;gt; *)&lt;/em&gt;, we got some monadic flavored Types in the stdlib. Optionals for example. If you feel unsure about understanding monads, don`t panic. Someday it will click.&lt;/p&gt;
+
+&lt;p&gt;Anyway, when you read on about the category theory stuff, you might come across a Type called &lt;em&gt;Comonad&lt;/em&gt;. Described as the categorical dual to a Monad it sounds fairly abstract and possibly without use case for the 9-5 programmer.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;But as always, it helps to try it out yourself&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Beware: Adding a commandic type in swift is possible. Wether you see a use case is up to you.&lt;/p&gt;
+
+&lt;h2 id=&quot;monads-&quot;&gt;Monads 📦&lt;/h2&gt;
+
+&lt;p&gt;The easy way - missing out &lt;strong&gt;many&lt;/strong&gt; important parts:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// simplified flatMap method of Optional
+flatMap&amp;lt;U&amp;gt;(f: Wrapped -&amp;gt; U?) -&amp;gt; U? 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;comonads-&quot;&gt;Comonads 🎊&lt;/h2&gt;
+
+&lt;p&gt;A comonad flips the direction of the provided flatMap function, and the method name itself gets renamed to &lt;em&gt;extend&lt;/em&gt;.
+So if we wanna make the Optional Type a Comonad it would also need to have an &lt;em&gt;extend&lt;/em&gt; method.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// hypothetical, silly extend method of optional 
+extend&amp;lt;U&amp;gt;(f: Wrapped? -&amp;gt; U) -&amp;gt; U?
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;If you want the full fledged answer: &lt;a href=&quot;https://en.wikipedia.org/wiki/Monad_(category_theory)&quot;&gt;Wikipedia&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;But that type signature makes no sense with Optionals.
+And to be honest: Its kinda hard to see what it does at all.
+So lets build a Type that makes sense.&lt;/p&gt;
+
+&lt;h2 id=&quot;imagine-&quot;&gt;Imagine 💭&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;☑️ You have an Array of Ints.&lt;/li&gt;
+  &lt;li&gt;☑️ And you know you point to a certain position within that array.&lt;/li&gt;
+  &lt;li&gt;☑️ And now you want to get the average of the value at the position, the position before, the position after.&lt;/li&gt;
+  &lt;li&gt;☑️ And in the next step you wanna know if this calculated average is higher than the average of the position before.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Doing this in an imperative way is possible. easy. But it can get a bit messy, and might not really be reusable.&lt;/p&gt;
+
+&lt;h2 id=&quot;tada-time-for-comonad-&quot;&gt;Tada, Time for Comonad. 🎉&lt;/h2&gt;
+
+&lt;p&gt;I am not gonna write too much in advance. You should be able to run the following snippet in a playground.&lt;/p&gt;
+
+&lt;noscript&gt;&lt;pre&gt;400: Invalid request
+&lt;/pre&gt;&lt;/noscript&gt;
+&lt;script src=&quot;https://gist.github.com/3c03db368cb2e74677a76e1693cddec4.js&quot;&gt; &lt;/script&gt;
+
+&lt;h2 id=&quot;congrats-you-made-it&quot;&gt;Congrats, you made it.&lt;/h2&gt;
+
+&lt;p&gt;Here an example out of the playground:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://elm4ward.github.io/assets/comonad-array-zipper.jpg&quot; alt=&quot;Playground&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As people often say: Once you understand the concept of Monads you loose the capability to explain them.
+The same is valid for comonads. 
+But keep in mind:
+ - Comonads care deeply about their structure 
+ - Comonads are great for things where you have a position in a structure (e.g. TreeZipper)
+ - Comonads might not be relevant to the code you write next week&lt;/p&gt;
+
+&lt;p&gt;👻 Feel free to hit me on twitter.&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 30 Mar 2016 22:40:14 +0200</pubDate>
+        <link>http://elm4ward.github.io/swift/functional/comonad/2016/03/30/monads-comonads.html</link>
+        <guid isPermaLink="true">http://elm4ward.github.io/swift/functional/comonad/2016/03/30/monads-comonads.html</guid>
+        
+        
+        <category>swift</category>
+        
+        <category>functional</category>
+        
+        <category>comonad</category>
+        
+      </item>
     
       <item>
         <title>Kinda unwrap Optionals</title>
@@ -31,8 +116,8 @@
 
 </description>
         <pubDate>Sat, 19 Mar 2016 14:29:14 +0100</pubDate>
-        <link>http://www.elmarkretzer.de/swift/optionals/protocols/2016/03/19/kinda-unwrap-optionals.html</link>
-        <guid isPermaLink="true">http://www.elmarkretzer.de/swift/optionals/protocols/2016/03/19/kinda-unwrap-optionals.html</guid>
+        <link>http://elm4ward.github.io/swift/optionals/protocols/2016/03/19/kinda-unwrap-optionals.html</link>
+        <guid isPermaLink="true">http://elm4ward.github.io/swift/optionals/protocols/2016/03/19/kinda-unwrap-optionals.html</guid>
         
         
         <category>swift</category>
