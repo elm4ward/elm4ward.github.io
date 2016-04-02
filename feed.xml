@@ -6,9 +6,163 @@
 </description>
     <link>http://elm4ward.github.io/</link>
     <atom:link href="http://elm4ward.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 30 Mar 2016 23:23:30 +0200</pubDate>
-    <lastBuildDate>Wed, 30 Mar 2016 23:23:30 +0200</lastBuildDate>
+    <pubDate>Sat, 02 Apr 2016 16:12:01 +0200</pubDate>
+    <lastBuildDate>Sat, 02 Apr 2016 16:12:01 +0200</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>Protocol-lisions</title>
+        <description>&lt;h1 id=&quot;fetch-it-change-it-merge-it-code-it&quot;&gt;Fetch it, Change it, Merge it: Code it&lt;/h1&gt;
+
+&lt;p&gt;&lt;em&gt;Let`s talk about writing code.&lt;/em&gt;
+When writing code, you gotta be lazy. Pretty ambiguous but correct in every sense.
+Being lazy in the sense of “shy of writing code” can be awesome.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Not having written much LOC speeds up understanding your own code&lt;/li&gt;
+  &lt;li&gt;Not wanting to write much code lets you think more about the structure of your code&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Shenanigans!&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Let`s talk about protocols.&lt;/em&gt;
+It often appears that the data in your app has some kind of flow. Between all those ifs and elses, somewhere deep down is a spine. It better be strong and hard to stand all your pretty features you add.
+In order to embrace safety of your data flow, let’s define a pretty simple flow in form of protocols.&lt;/p&gt;
+
+&lt;h2 id=&quot;pro-protocols-&quot;&gt;Pro: Protocols 👍&lt;/h2&gt;
+
+&lt;p&gt;I will not give an explanation what protocols are - so this might be a good point to ensure you have read &lt;a href=&quot;https://developer.apple.com/library/ios/documentation/Swift/Conceptual/Swift_Programming_Language/Protocols.html&quot;&gt;the Swift Documentation about Protocols&lt;/a&gt;.
+Lets jump into some totally reasonable definitions:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Fetchable&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;protocol&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Fetchable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// a placeholder for what type we wanna fetch&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// should be associatedtype if swift 2.2&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;FetchedType&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// static access for all elements&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;all&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;FetchedType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;ok - next up:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Changeable&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;protocol&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Changeable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// a placeholder for what type we wanna as a result after the change&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// should be associatedtype if swift 2.2&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ChangeResultType&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// static access for a closure to modify Self to ChangeResultType&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;changeTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;Self&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ChangeResultType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;ok - finally:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;kd&quot;&gt;protocol&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Mergeable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// a placeholder for what type we wanna as a result after the merge&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// should be associatedtype if swift 2.2&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MergeResultType&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// static access for a closure to merge Self with MergeResultType&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;merge&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;MergeResultType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;Self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MergeResultType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// static access to a initial merge value&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;identity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MergeResultType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Thats its&lt;/strong&gt;. 
+Thats all we know. 
+No interconnection until now.&lt;/p&gt;
+
+&lt;p&gt;Those protocols dont know each other - so they are super-reusalble™.
+&lt;em&gt;And of course, it is possible to use funcs instead of closures&lt;/em&gt;, but its a lazy post.&lt;/p&gt;
+
+&lt;h2 id=&quot;give-it-a-good-stir-to-combine-&quot;&gt;Give it a good stir to combine 🍰&lt;/h2&gt;
+
+&lt;p&gt;Now comes the first part that will boost productivity.
+Lets define a func where all those protocols work together.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Lets start by extending Fetchable&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Fetchable&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;where&lt;/span&gt; 
+  &lt;span class=&quot;c1&quot;&gt;// ensuring the fetched type is also Changeable&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;Self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;FetchedType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Changeable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// and the result of the change is Mergeable&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;Self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;FetchedType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;ChangeResultType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Mergeable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
+  
+  &lt;span class=&quot;c1&quot;&gt;/// some litle shortcuts&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MergeableType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;Self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;FetchedType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;ChangeResultType&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ChangeableType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;Self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;FetchedType&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;/// the static method has access to all known Protocol Types from the extension definition.&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;/// lets run them all &lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fetchItChangeItMergeIt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MergeableType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;MergeResultType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// fetch it&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;all&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;// change it&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;ChangeableType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;changeTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;// merge it&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;reduce&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;MergeableType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;identity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;combine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MergeableType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;merge&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;So far - all valid swift - but nothing will happen. 🙄&lt;/p&gt;
+
+&lt;p&gt;All that was defined so far is based on protocols. 
+There is no actual implementation of the protocols. 
+But in terms of the &lt;em&gt;abstract protocol flow&lt;/em&gt; we already know what happens.&lt;/p&gt;
+
+&lt;p&gt;This is like a universal truth in our code.
+&lt;strong&gt;And universal truth is great.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;with-less-code-comes-great-responsibility-&quot;&gt;With less code comes great responsibility 🎩&lt;/h2&gt;
+
+&lt;p&gt;In fact - using those protocols is the most boring part. 
+There is hardly something to do. Not kidding.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;kd&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Fetchable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Changeable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// yay...  &lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;all&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;b&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// yay...&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;changeTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;characters&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Mergeable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// yay...&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;identity&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;merge&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;fetchItChangeItMergeIt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// -&amp;gt; 3&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The point is:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;You have to know when to use those things.&lt;/strong&gt;
+ It`s like &lt;em&gt;typesafe loosely coupled&lt;/em&gt; power.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Plus you need the right abstraction for the types.&lt;/strong&gt;
+Like in the example on the top you cannot define another &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt; that is Changeable to &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt;.
+You have to workaround those situations by Types.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://elm4ward.github.io/assets/protocolflow.jpg&quot; alt=&quot;Playground&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;have-fun-playing-&quot;&gt;Have fun playing ⛳️&lt;/h2&gt;
+
+&lt;noscript&gt;&lt;pre&gt;400: Invalid request
+&lt;/pre&gt;&lt;/noscript&gt;
+&lt;script src=&quot;https://gist.github.com/9cfbdea339992051f51870265052f7ec.js&quot;&gt; &lt;/script&gt;
+
+&lt;p&gt;👻 Feel free to hit me on twitter.
+&lt;a href=&quot;https://twitter.com/elmkretzer&quot;&gt;@elmkretzer&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sat, 02 Apr 2016 14:10:14 +0200</pubDate>
+        <link>http://elm4ward.github.io/swift/protocols/2016/04/02/protocollisions.html</link>
+        <guid isPermaLink="true">http://elm4ward.github.io/swift/protocols/2016/04/02/protocollisions.html</guid>
+        
+        
+        <category>swift</category>
+        
+        <category>protocols</category>
+        
+      </item>
     
       <item>
         <title>Monads are yay &amp; Comonads are yayer</title>
@@ -28,20 +182,17 @@
 
 &lt;p&gt;The easy way - missing out &lt;strong&gt;many&lt;/strong&gt; important parts:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// simplified flatMap method of Optional
-flatMap&amp;lt;U&amp;gt;(f: Wrapped -&amp;gt; U?) -&amp;gt; U? 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// simplified flatMap method of Optional&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;U&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Wrapped&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;U&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;U&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h2 id=&quot;comonads-&quot;&gt;Comonads 🎊&lt;/h2&gt;
 
 &lt;p&gt;A comonad flips the direction of the provided flatMap function, and the method name itself gets renamed to &lt;em&gt;extend&lt;/em&gt;.
 So if we wanna make the Optional Type a Comonad it would also need to have an &lt;em&gt;extend&lt;/em&gt; method.&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// hypothetical, silly extend method of optional 
-extend&amp;lt;U&amp;gt;(f: Wrapped? -&amp;gt; U) -&amp;gt; U?
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// hypothetical, silly extend method of optional &lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;extend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;U&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Wrapped&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;U&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;U&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
 &lt;p&gt;If you want the full fledged answer: &lt;a href=&quot;https://en.wikipedia.org/wiki/Monad_(category_theory)&quot;&gt;Wikipedia&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;But that type signature makes no sense with Optionals.
@@ -79,7 +230,8 @@ But keep in mind:
  - Comonads are great for things where you have a position in a structure (e.g. TreeZipper)
  - Comonads might not be relevant to the code you write next week&lt;/p&gt;
 
-&lt;p&gt;👻 Feel free to hit me on twitter.&lt;/p&gt;
+&lt;p&gt;👻 Feel free to hit me on twitter.
+ &lt;a href=&quot;https://twitter.com/elmkretzer&quot;&gt;@elmkretzer&lt;/a&gt;&lt;/p&gt;
 
 </description>
         <pubDate>Wed, 30 Mar 2016 22:40:14 +0200</pubDate>

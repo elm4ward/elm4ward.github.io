@@ -82,20 +82,17 @@
 
 <p>The easy way - missing out <strong>many</strong> important parts:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// simplified flatMap method of Optional
-flatMap&lt;U&gt;(f: Wrapped -&gt; U?) -&gt; U? 
-</code></pre>
-</div>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// simplified flatMap method of Optional</span>
+<span class="n">flatMap</span><span class="o">&lt;</span><span class="kt">U</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">f</span><span class="p">:</span> <span class="kt">Wrapped</span> <span class="o">-&gt;</span> <span class="kt">U</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">U</span><span class="p">?</span> </code></pre></figure>
 
 <h2 id="comonads-">Comonads 🎊</h2>
 
 <p>A comonad flips the direction of the provided flatMap function, and the method name itself gets renamed to <em>extend</em>.
 So if we wanna make the Optional Type a Comonad it would also need to have an <em>extend</em> method.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// hypothetical, silly extend method of optional 
-extend&lt;U&gt;(f: Wrapped? -&gt; U) -&gt; U?
-</code></pre>
-</div>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// hypothetical, silly extend method of optional </span>
+<span class="n">extend</span><span class="o">&lt;</span><span class="kt">U</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">f</span><span class="p">:</span> <span class="kt">Wrapped</span><span class="p">?</span> <span class="o">-&gt;</span> <span class="kt">U</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">U</span><span class="p">?</span></code></pre></figure>
+
 <p>If you want the full fledged answer: <a href="https://en.wikipedia.org/wiki/Monad_(category_theory)">Wikipedia</a></p>
 
 <p>But that type signature makes no sense with Optionals.
