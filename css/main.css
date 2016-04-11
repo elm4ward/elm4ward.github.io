@@ -11,7 +11,7 @@ dl, dd, ol, ul, figure {
  * Basic styling
  */
 body {
-  font: 400 16px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 400 16px/1.5 -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #111;
   background-color: #fdfdfd;
   -webkit-text-size-adjust: 100%;
@@ -454,3 +454,7 @@ pre {
     color: #fff; }
   .highlight .il {
     color: #fff; }
+
+p code.highlighter-rouge {
+  background: #e2e2e2;
+  color: #000; }

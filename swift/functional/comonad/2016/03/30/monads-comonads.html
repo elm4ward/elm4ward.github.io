@@ -76,7 +76,7 @@
 
 <p><strong>But as always, it helps to try it out yourself</strong>.</p>
 
-<p>Beware: Adding a commandic type in swift is possible. Wether you see a use case is up to you.</p>
+<p>Beware: Adding a comonadic type in swift is possible. Wether you see a use case is up to you.</p>
 
 <h2 id="monads-">Monads 📦</h2>
 
@@ -87,7 +87,7 @@
 
 <h2 id="comonads-">Comonads 🎊</h2>
 
-<p>A comonad flips the direction of the provided flatMap function, and the method name itself gets renamed to <em>extend</em>.
+<p>A Comonad flips the direction of the provided flatMap function, and the method name itself gets renamed to <em>extend</em>.
 So if we wanna make the Optional Type a Comonad it would also need to have an <em>extend</em> method.</p>
 
 <figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// hypothetical, silly extend method of optional </span>
@@ -111,24 +111,24 @@ So lets build a Type that makes sense.</p>
 
 <h2 id="tada-time-for-comonad-">Tada, Time for Comonad. 🎉</h2>
 
-<p>I am not gonna write too much in advance. You should be able to run the following snippet in a playground.</p>
-
-<noscript><pre>400: Invalid request
-</pre></noscript>
-<script src="https://gist.github.com/3c03db368cb2e74677a76e1693cddec4.js"> </script>
-
-<h2 id="congrats-you-made-it">Congrats, you made it.</h2>
-
-<p>Here an example out of the playground:</p>
+<p>I am not gonna write too much in advance. You should be able to run the  snippet below in a playground.
+Here an example screenshot of the playground:</p>
 
 <p><img src="http://elm4ward.github.io/assets/comonad-array-zipper.jpg" alt="Playground" /></p>
 
 <p>As people often say: Once you understand the concept of Monads you loose the capability to explain them.
-The same is valid for comonads. 
-But keep in mind:
- - Comonads care deeply about their structure 
- - Comonads are great for things where you have a position in a structure (e.g. TreeZipper)
- - Comonads might not be relevant to the code you write next week</p>
+The same is valid for Comonads. 
+But keep in mind:</p>
+
+<ul>
+  <li>Comonads care deeply about their structure</li>
+  <li>Comonads are great for things where you have a position in a structure (e.g. TreeZipper)</li>
+  <li>Comonads might not be relevant to the code you write next week</li>
+</ul>
+
+<noscript><pre>400: Invalid request
+</pre></noscript>
+<script src="https://gist.github.com/3c03db368cb2e74677a76e1693cddec4.js"> </script>
 
 <p>👻 Feel free to hit me on twitter.
  <a href="https://twitter.com/elmkretzer">@elmkretzer</a></p>
