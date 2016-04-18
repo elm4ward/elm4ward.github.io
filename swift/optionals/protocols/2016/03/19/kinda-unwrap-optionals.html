@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>Kinda unwrap Optionals</title>
-  <meta name="description" content="Optionals. Sometimes it is a little bit ugly to force unwrap things.">
+  <meta name="description" content="Kinda unwrap Optionals">
 
   <link rel="stylesheet" href="/css/main.css">
   <link rel="canonical" href="http://elm4ward.github.io/swift/optionals/protocols/2016/03/19/kinda-unwrap-optionals.html">
@@ -61,24 +61,35 @@
         <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
+       <p class="post-meta"><time datetime="2016-03-19T14:29:14+01:00" itemprop="datePublished">2016</time>
+       <small>✔️ Swift 2.2</small>
+       <small>🎯 <a href="#gist">Straight to the Gist</a></small>
+       </p>
     <h1 class="post-title" itemprop="name headline">Kinda unwrap Optionals</h1>
-    <p class="post-meta"><time datetime="2016-03-19T14:29:14+01:00" itemprop="datePublished">March 2016</time></p>
   </header>
 
   <div class="post-content" itemprop="articleBody">
-    <p>Optionals. Sometimes it is a little bit ugly to force unwrap things.</p>
+    <h1 id="kinda-unwrap-optionals">Kinda unwrap Optionals</h1>
 
-<p>You know there is a value. You add a <code class="highlighter-rouge">!</code> 
-  But then things change and your code breaks.
-  So in case you need to gracefully handle this, you add <code class="highlighter-rouge">a.maybeVal ?? ""</code>.</p>
+<blockquote>
+  <p>TL;DR: You can add custom logic to optionals.</p>
+</blockquote>
 
-<p>Much better, but possibly a lot to read when used in combination with other stuff.</p>
+<p>Optionals. Sometimes it is a little bit ugly to force unwrap things.</p>
 
-<p><code class="highlighter-rouge">let r4 = (a1.a ?? "") + (a2.a ?? "")</code></p>
+<p>You know there is a value. 
+You add a <code class="highlighter-rouge">!</code> 
+But then things change and your code breaks.
+So in case you need to gracefully handle this, you add <code class="highlighter-rouge">a.maybeVal ?? ""</code>.</p>
+
+<p>Much better, but possibly a lot to read when used in combination with other operations.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="nv">r4</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span><span class="o">.</span><span class="n">a</span> <span class="p">??</span> <span class="s">""</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">a2</span><span class="o">.</span><span class="n">a</span> <span class="p">??</span> <span class="s">""</span><span class="p">)</span></code></pre></figure>
 
 <p>But swift gives us protocols. 🎉
-  So wouldnt it be nice to (maybe) have another option …</p>
+  So wouldn`t it be nice to (maybe) have another option …</p>
 
+<p><span id="gist"></span></p>
 <noscript><pre>400: Invalid request
 </pre></noscript>
 <script src="https://gist.github.com/ca69c7114926ff9c72ec.js"> </script>
