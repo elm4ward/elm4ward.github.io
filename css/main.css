@@ -95,9 +95,9 @@ blockquote {
 pre,
 code {
   font-size: 15px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid #f3f3f3;
   border-radius: 3px;
-  background-color: #eef; }
+  background-color: #f3f3f3; }
 
 code {
   padding: 1px 5px; }
@@ -293,14 +293,15 @@ pre {
  * Posts
  */
 .post-header {
-  margin-bottom: 30px; }
+  margin-bottom: 5px; }
 
-.post-title {
+.post-title, h1 {
   font-size: 42px;
   letter-spacing: -1px;
-  line-height: 1; }
+  line-height: 1;
+  margin-bottom: 60px; }
   @media screen and (max-width: 800px) {
-    .post-title {
+    .post-title, h1 {
       font-size: 36px; } }
 
 .post-content {
@@ -460,8 +461,8 @@ pre {
     color: #fff; }
 
 p code.highlighter-rouge {
-  background: #e2e2e2;
-  color: #000; }
+  background: #f3f3f3;
+  color: #111; }
 
 small {
   display: inline-block;
