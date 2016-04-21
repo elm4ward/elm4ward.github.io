@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Erase em all</title>
+  <meta name="description" content="Look ma, no protocols.">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://elm4ward.github.io/swift/generics/type/erasure/2016/04/21/erase-em-all.html">
+  <link rel="alternate" type="application/rss+xml" title="Mauersegler.swift" href="http://elm4ward.github.io/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">Mauersegler.swift</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+          <a class="page-link" href="/imprint/">Imprint</a>
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+       <p class="post-meta"><time datetime="2016-04-21T21:30:14+02:00" itemprop="datePublished">04/21/16</time>
+       <small>✔️ Swift 2.2</small>
+       <small>🎯 <a href="#gist">Straight to the Gist</a></small>
+       </p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <h1 id="look-ma-no-protocols">Look ma, no protocols.</h1>
+
+<blockquote>
+  <p>TL;DR: You can move coupled PAT* logic into a generic type and even get rid of generic types at all.</p>
+</blockquote>
+
+<p><small>*protocol with associated types</small></p>
+
+<p>This is a follow up to <a href="http://elm4ward.github.io/swift/protocols/2016/04/02/protocollisions.html">Protocol-lisions</a>.</p>
+
+<p>That blog post was about a bunch of protocols with associated types. In order to take full advantage of the PAT-Power™  they were coupled in an extension of one of them. And as demonstrated you can add a lot of implicit functionality to your types by going down that road.
+But. Beware. You also get some non trivial stuff to think about.</p>
+
+<blockquote>
+  <p>error: protocol ‘Fetchable’ can only be used as a generic constraint because it has Self or associated type requirements</p>
+</blockquote>
+
+<p>There was a great <a href="https://www.youtube.com/watch?v=QCxkaTj7QJs">talk</a> by <a href="https://twitter.com/cocoaphony">Robert Napier</a> at dotSwift 2016. He explained how he ended up with lots of PATs + extensions + <em>where</em> type constraints and all he wanted was basically a <strong>solution</strong>. So he moved all the logic of the protocols as <em>functions</em> into a generic type. And of course - that`s a brilliant way! We will do the same today. And maybe we can find some pros and cons, and when to use what. And we try to do a mix of both worlds.</p>
+
+<h2 id="yo-bro-tocol-">Yo Bro-tocol 🎛</h2>
+
+<p>Just a quick reminder:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// 1.</span>
+<span class="kd">protocol</span> <span class="kt">Fetchable</span> <span class="p">{</span>
+  <span class="c1">// should be associatedtype but syntax hightlighting ...  =)</span>
+  <span class="kd">typealias</span> <span class="kt">FetchedType</span>
+  <span class="kd">static</span> <span class="k">var</span> <span class="nv">all</span><span class="p">:</span> <span class="p">[</span><span class="kt">FetchedType</span><span class="p">]</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">// 2.</span>
+<span class="kd">protocol</span> <span class="kt">Changeable</span> <span class="p">{</span> 
+  <span class="c1">// associatedtype</span>
+  <span class="kd">typealias</span> <span class="kt">ChangeResultType</span>
+  <span class="kd">static</span> <span class="k">var</span> <span class="nv">changeTo</span><span class="p">:</span> <span class="k">Self</span> <span class="o">-&gt;</span> <span class="kt">ChangeResultType</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">// 3.</span>
+<span class="kd">protocol</span> <span class="kt">Mergeable</span> <span class="p">{</span> 
+ <span class="c1">// associatedtype</span>
+  <span class="kd">typealias</span> <span class="kt">MergeResultType</span>
+  <span class="kd">static</span> <span class="k">var</span> <span class="nv">merge</span><span class="p">:</span> <span class="p">(</span><span class="kt">MergeResultType</span><span class="p">,</span> <span class="k">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">MergeResultType</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span>
+  <span class="kd">static</span> <span class="k">var</span> <span class="nv">identity</span><span class="p">:</span> <span class="kt">MergeResultType</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>When you have a close look at the protocols, you see that all they provide (mostly, in this case) is a closure to transform from 1 or 2 Types to another ( <em>+ a variable called identity</em>).
+So we extract:</p>
+
+<ul>
+  <li>static var changeTo: Self -&gt; ChangeResultType { get }</li>
+  <li>static var merge: (MergeResultType, Self) -&gt; MergeResultType { get }</li>
+  <li>static var identity: MergeResultType { get }</li>
+</ul>
+
+<p>and move them straight into a single type - like this:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// The functions in the struct define how the types line up</span>
+<span class="c1">// - FetchedType is now called Fetched</span>
+<span class="c1">// - ChangeResultType is now called ChangeTo</span>
+<span class="c1">// - MergeResultType is now called MergeTo</span>
+<span class="kd">struct</span> <span class="kt">Workflow</span><span class="o">&lt;</span><span class="kt">Fetched</span><span class="p">,</span> <span class="kt">ChangeTo</span><span class="p">,</span> <span class="kt">MergeTo</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="c1">// no protocol: just a function</span>
+  <span class="k">let</span> <span class="nv">change</span><span class="p">:</span> <span class="kt">Fetched</span> <span class="o">-&gt;</span> <span class="kt">ChangeTo</span>
+  <span class="c1">// no protocol: just a function</span>
+  <span class="k">let</span> <span class="nv">merge</span><span class="p">:</span> <span class="p">(</span><span class="kt">MergeTo</span><span class="p">,</span> <span class="kt">ChangeTo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">MergeTo</span>
+  <span class="c1">// initial value</span>
+  <span class="k">let</span> <span class="nv">mergeStart</span><span class="p">:</span> <span class="kt">MergeTo</span>
+  <span class="c1">// provide argument and function returns happily a result</span>
+  <span class="kd">func</span> <span class="nf">run</span><span class="p">(</span><span class="nv">fetch</span><span class="p">:</span> <span class="p">[</span><span class="kt">Fetched</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kt">MergeTo</span> <span class="p">{</span>
+    <span class="c1">// this was part of the protocol extension in the previous version</span>
+    <span class="k">return</span> <span class="n">fetch</span><span class="o">.</span><span class="nf">map</span><span class="p">(</span><span class="n">change</span><span class="p">)</span><span class="o">.</span><span class="nf">reduce</span><span class="p">(</span><span class="n">mergeStart</span><span class="p">,</span> <span class="nv">combine</span><span class="p">:</span> <span class="n">merge</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Looks like we have way less code. And we gained another advantage.
+We can take the <em>type</em> <strong>Workflow</strong> and use it as an type identifier.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// hopefully correct:</span>
+<span class="c1">// Workflow&lt;String, Int, Int&gt; is a nominal type, </span>
+<span class="c1">// -&gt; thus you can use it as type identifer.</span>
+<span class="k">let</span> <span class="nv">workflow</span><span class="p">:</span> <span class="kt">Workflow</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">Int</span><span class="p">,</span> <span class="kt">Int</span><span class="o">&gt;</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span>
+<span class="c1">// The existential type Fetchable has a type hole </span>
+<span class="c1">// -&gt; and cannot be used as type identifer.</span>
+<span class="k">let</span> <span class="nv">fetchable</span><span class="p">:</span> <span class="kt">Fetchable</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span></code></pre></figure>
+
+<h2 id="matching-types-">Matching Types 🍱</h2>
+
+<p>The solution based on the generic struct seems pretty solid. The fundamental difference is:</p>
+
+<ul>
+  <li>Your types don`t need to conform to a protocol</li>
+  <li>The workflow can take whatever you give to it</li>
+  <li>… at the same time … it feels a little bit vague</li>
+</ul>
+
+<p>Let`s see how it`s working out, when you use it.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// let`s define a closure to get the </span>
+<span class="c1">// number of characters in a string</span>
+<span class="k">let</span> <span class="nv">countCharacters</span><span class="p">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">=</span> <span class="p">{</span> <span class="nv">$0</span><span class="o">.</span><span class="n">characters</span><span class="o">.</span><span class="n">count</span> <span class="p">}</span>
+<span class="c1">// no need to specify the generics as all information</span>
+<span class="c1">// about them is provided by the arguments</span>
+<span class="c1">// -&gt; thats why the generics can be inferred on left and right side.</span>
+<span class="k">let</span> <span class="nv">stringWorkflow</span> <span class="o">=</span> <span class="kt">Workflow</span><span class="p">(</span><span class="nv">change</span><span class="p">:</span> <span class="n">countCharacters</span><span class="p">,</span> <span class="nv">merge</span><span class="p">:</span> <span class="o">+</span><span class="p">,</span> <span class="nv">mergeStart</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+<span class="c1">// who actually provides the info?</span>
+<span class="c1">//</span>
+<span class="c1">// Workflow&lt;String, Int, Int&gt;</span>
+<span class="c1">//            |      |    |</span>
+<span class="c1">//            |      |    ---&gt; merge func +(Int, Int) as change returns Int</span>
+<span class="c1">//            |      |</span>
+<span class="c1">//            ---------&gt; change function</span></code></pre></figure>
+
+<p>Great - why not use this approach all the times?</p>
+
+<p><strong>It depends.</strong></p>
+
+<p>The thing is that <em>Workflow&lt;String, Int, Int&gt;</em> does not really provide much insight into what it is <strong>really</strong> doing. It is definitely a great way to flip the PAT stuff into real usable types. At the same time it feels less restricted and therefore i tend to say it might be a little bit vague sometimes. Both ways have their pros and cons.</p>
+
+<p>Even though you have to get used to <em>where</em> constraints the PAT approach feels more robust to me and might be better for many types that have connections between them.</p>
+
+<p>The generic solution feels like a super slick way, while at the same time you loose the safety of the protocol types. It might be a little less obvious what you are actually doing.</p>
+
+<p>To be honest - i guess both ways have their right to exist. It <strong>always</strong> depends on the context.</p>
+
+<h2 id="no-generics-allowed-today-">No Generics allowed today 🚮</h2>
+
+<p>But we don`t stop now. We got rid of those messy PATs - so now we want to kill the generic types at all. Ultimately it might be necessary to handle multiple <em>Workflows</em> with different generics at once. How we gonna free the workflow?</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// type erasure struct</span>
+<span class="c1">// without any generic information</span>
+<span class="kd">struct</span> <span class="kt">AnyWorkflow</span> <span class="p">{</span>
+  <span class="c1">// we don`t know whats the result</span>
+  <span class="c1">// so all we can return is Any</span>
+  <span class="k">let</span> <span class="nv">run</span><span class="p">:</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Any</span>
+  <span class="c1">// in order to initialize with an generic type </span>
+  <span class="c1">// we need to make a generic init function.</span>
+  <span class="c1">// the information about the types is erased </span>
+  <span class="c1">// as the struct does not have any generics.</span>
+  <span class="c1">// we erased them! </span>
+  <span class="c1">// all we do is: </span>
+  <span class="c1">// storing the type in a function that returns: Any</span>
+  <span class="c1">// Again:</span>
+  <span class="c1">// 1. init is generic!</span>
+  <span class="c1">// 2. the type is not generic!</span>
+  <span class="kd">init</span><span class="o">&lt;</span><span class="kt">F</span><span class="p">,</span> <span class="kt">C</span><span class="p">,</span> <span class="kt">M</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">workflow</span><span class="p">:</span> <span class="kt">Workflow</span><span class="o">&lt;</span><span class="kt">F</span><span class="p">,</span> <span class="kt">C</span><span class="p">,</span> <span class="kt">M</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">run</span> <span class="nv">input</span><span class="p">:</span> <span class="p">[</span><span class="kt">F</span><span class="p">])</span> <span class="p">{</span>
+    <span class="k">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="n">workflow</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">// actually - this could be anything</span>
+<span class="c1">// at least the init is typesafe!</span>
+<span class="k">let</span> <span class="nv">any</span> <span class="o">=</span> <span class="kt">AnyWorkflow</span><span class="p">(</span><span class="nv">workflow</span><span class="p">:</span> <span class="n">stringWorkflow</span><span class="p">,</span> <span class="nv">run</span><span class="p">:</span> <span class="p">[</span><span class="s">"a"</span><span class="p">,</span> <span class="s">"b"</span><span class="p">])</span></code></pre></figure>
+
+<p>And now we can put all kinds of workflows in an Array.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// now a totally different workflow</span>
+<span class="k">let</span> <span class="nv">intWorkflow</span> <span class="o">=</span> <span class="kt">Workflow</span><span class="p">(</span>
+  <span class="nv">change</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="nv">int</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="k">in</span> <span class="n">int</span><span class="o">.</span><span class="n">description</span> <span class="p">},</span>
+  <span class="nv">merge</span><span class="p">:</span> <span class="p">{</span> <span class="p">[</span><span class="nv">$0</span><span class="p">,</span> <span class="nv">$1</span><span class="p">]</span><span class="o">.</span><span class="nf">joinWithSeparator</span><span class="p">(</span><span class="s">" - "</span><span class="p">)</span> <span class="p">},</span>
+  <span class="nv">mergeStart</span><span class="p">:</span> <span class="s">"da ints"</span>
+<span class="p">)</span>
+<span class="c1">// again we wrap it in AnyWorkflow</span>
+<span class="k">let</span> <span class="nv">any2</span> <span class="o">=</span> <span class="kt">AnyWorkflow</span><span class="p">(</span><span class="nv">workflow</span><span class="p">:</span> <span class="n">intWorkflow</span><span class="p">,</span> <span class="nv">run</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span>
+<span class="c1">// Type erasure live and in action</span>
+<span class="c1">// 'any' and 'any2' consumed different workflows </span>
+<span class="c1">// but we can put them in a list and run them!</span>
+<span class="c1">// the underlying workflow in 'any' is of Type: </span>
+<span class="c1">// Workflow&lt;String, Int, Int&gt; </span>
+<span class="c1">// the underlying workflow in any2 is of Type: </span>
+<span class="c1">// Workflow&lt;Int, String, String&gt;</span>
+<span class="k">let</span> <span class="nv">anyResults</span> <span class="o">=</span> <span class="p">[</span><span class="n">any</span><span class="p">,</span> <span class="n">any2</span><span class="p">]</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="nv">$0</span><span class="o">.</span><span class="nf">run</span><span class="p">()</span> <span class="p">}</span>
+<span class="c1">// whats the type of anyResults?</span>
+<span class="c1">// -&gt; Array&lt;protocol&lt;&gt;&gt;</span></code></pre></figure>
+
+<p>Ok. Do you really need that? Maybe.</p>
+
+<h2 id="worst-of-both-worlds-">Worst of Both Worlds 🌀</h2>
+
+<p>I want to finish by describing a 3rd solution: <strong>using both</strong>.</p>
+
+<ul>
+  <li>A generic type that can be used as type identifier</li>
+  <li>While keeping the protocol safety</li>
+  <li>Hmmm … just kidding</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">/// 1. protocol</span>
+<span class="kd">protocol</span> <span class="kt">Fetchable</span> <span class="p">{</span>
+  <span class="kd">typealias</span> <span class="kt">FetchedType</span>
+<span class="p">}</span>
+<span class="c1">/// 2. protocol</span>
+<span class="kd">protocol</span> <span class="kt">Changeable</span> <span class="p">{</span>
+  <span class="kd">typealias</span> <span class="kt">ChangeResultType</span>
+<span class="p">}</span>
+<span class="c1">/// 3. protocol</span>
+<span class="kd">protocol</span> <span class="kt">Mergeable</span> <span class="p">{</span>
+  <span class="kd">typealias</span> <span class="kt">MergeResultType</span>
+<span class="p">}</span>
+<span class="c1">/// 4. conform to protocol</span>
+<span class="kd">extension</span> <span class="kt">String</span><span class="p">:</span> <span class="kt">Fetchable</span> <span class="p">{</span>
+  <span class="kd">typealias</span> <span class="kt">FetchedType</span> <span class="o">=</span> <span class="kt">String</span>
+<span class="p">}</span>
+<span class="c1">/// 5. conform to protocol</span>
+<span class="kd">extension</span> <span class="kt">String</span><span class="p">:</span> <span class="kt">Changeable</span> <span class="p">{</span>
+  <span class="kd">typealias</span> <span class="kt">ChangeResultType</span> <span class="o">=</span> <span class="kt">Int</span>
+<span class="p">}</span>
+<span class="c1">/// 6. conform to protocol</span>
+<span class="kd">extension</span> <span class="kt">Int</span><span class="p">:</span> <span class="kt">Mergeable</span> <span class="p">{</span>
+  <span class="kd">typealias</span> <span class="kt">MergeResultType</span> <span class="o">=</span> <span class="kt">Int</span>
+<span class="p">}</span>
+<span class="c1">/// the generics struct with protocols, associated types, constraints </span>
+<span class="c1">/// and a split personality</span>
+<span class="kd">struct</span> <span class="kt">ProtoWorkflow</span><span class="o">&lt;</span><span class="kt">F</span><span class="p">,</span> <span class="kt">C</span><span class="p">,</span> <span class="kt">M</span> <span class="k">where</span>
+  <span class="kt">F</span><span class="p">:</span> <span class="kt">Fetchable</span><span class="p">,</span>
+  <span class="kt">C</span><span class="p">:</span> <span class="kt">Changeable</span><span class="p">,</span>
+  <span class="kt">M</span><span class="p">:</span> <span class="kt">Mergeable</span><span class="p">,</span>
+  <span class="kt">F</span><span class="o">.</span><span class="kt">FetchedType</span> <span class="o">==</span> <span class="kt">C</span><span class="p">,</span>
+  <span class="kt">C</span><span class="o">.</span><span class="kt">ChangeResultType</span> <span class="o">==</span> <span class="kt">M</span>
+<span class="o">&gt;</span> <span class="p">{</span>
+  <span class="c1">// protocol-y</span>
+  <span class="k">let</span> <span class="nv">change</span><span class="p">:</span> <span class="kt">F</span><span class="o">.</span><span class="kt">FetchedType</span> <span class="o">-&gt;</span> <span class="kt">C</span><span class="o">.</span><span class="kt">ChangeResultType</span>
+  <span class="c1">// protocol-y</span>
+  <span class="k">let</span> <span class="nv">merge</span><span class="p">:</span> <span class="p">(</span><span class="kt">M</span><span class="o">.</span><span class="kt">MergeResultType</span><span class="p">,</span> <span class="kt">C</span><span class="o">.</span><span class="kt">ChangeResultType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">M</span><span class="o">.</span><span class="kt">MergeResultType</span>
+  <span class="c1">// protocol-y</span>
+  <span class="k">let</span> <span class="nv">mergeStart</span><span class="p">:</span> <span class="kt">M</span><span class="o">.</span><span class="kt">MergeResultType</span>
+  <span class="c1">// protocol-y</span>
+  <span class="kd">func</span> <span class="nf">run</span><span class="p">(</span><span class="nv">fetch</span><span class="p">:</span> <span class="p">[</span><span class="kt">F</span><span class="o">.</span><span class="kt">FetchedType</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kt">M</span><span class="o">.</span><span class="kt">MergeResultType</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">fetch</span><span class="o">.</span><span class="nf">map</span><span class="p">(</span><span class="n">change</span><span class="p">)</span><span class="o">.</span><span class="nf">reduce</span><span class="p">(</span><span class="n">mergeStart</span><span class="p">,</span> <span class="nv">combine</span><span class="p">:</span> <span class="n">merge</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">/// the generics can not be inferred ... </span>
+<span class="c1">/// maybe just another reason to not use it that way</span>
+<span class="k">let</span> <span class="nv">🎨</span> <span class="o">=</span> <span class="kt">ProtoWorkflow</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">Int</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">change</span><span class="p">:</span> <span class="n">countCharacters</span><span class="p">,</span> <span class="nv">merge</span><span class="p">:</span> <span class="o">+</span><span class="p">,</span> <span class="nv">mergeStart</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span></code></pre></figure>
+
+<p>What do you think?</p>
+
+<h2 id="the-gist-of-it-">The gist of it 👻</h2>
+
+<p><span id="gist"></span></p>
+<noscript><pre>400: Invalid request
+</pre></noscript>
+<script src="https://gist.github.com/cde43b4c2efc301dee39292c962c2665.js"> </script>
+
+<p>👻 Feel free to hit me on twitter.
+<a href="https://twitter.com/elmkretzer">@elmkretzer</a></p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-4">
+        <p>Mauersegler.swift - In the long term, this will be a blog about using Swift. 
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
