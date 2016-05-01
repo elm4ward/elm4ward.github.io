@@ -6,9 +6,322 @@
 </description>
     <link>http://elm4ward.github.io/</link>
     <atom:link href="http://elm4ward.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 21 Apr 2016 22:34:33 +0200</pubDate>
-    <lastBuildDate>Thu, 21 Apr 2016 22:34:33 +0200</lastBuildDate>
+    <pubDate>Sun, 01 May 2016 16:27:35 +0200</pubDate>
+    <lastBuildDate>Sun, 01 May 2016 16:27:35 +0200</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>Back and forth and generics</title>
+        <description>&lt;h1 id=&quot;bi-directional-type-inference&quot;&gt;Bi-directional Type Inference&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;TL;DR: It`s bi-directional: provide the necessary type information for generics wherever you want to, as long as it is not ambiguous.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;One of Swift`s best features is well &lt;a href=&quot;https://github.com/apple/swift/blob/master/docs/TypeChecker.rst#approach&quot;&gt;hidden&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Actually, the less code you write, the more it takes control. &lt;br /&gt;
+&lt;em&gt;What?&lt;/em&gt; &lt;strong&gt;Yes!&lt;/strong&gt;&lt;br /&gt;
+Let`s talk about type inference.&lt;br /&gt;
+Let`s talk about bi-directional type inference.&lt;/p&gt;
+
+&lt;h2 id=&quot;strongly-typed-meant-to-be-a-lot-of-typing-&quot;&gt;Strongly typed meant to be a lot of typing ⌨️&lt;/h2&gt;
+
+&lt;p&gt;When you take a look at the &lt;a href=&quot;http://www.tiobe.com/tiobe_index&quot;&gt;Tiobe Index&lt;/a&gt; the PL ranking 1st is Java (April 2016). And I guess quite a lot of people are already familiar with the Java way of generics and types.&lt;/p&gt;
+
+&lt;p&gt;First of all, pretty much everything you get from Java generics should work in Swift too. &lt;strong&gt;But&lt;/strong&gt; Swift generics are &lt;strong&gt;way more powerful&lt;/strong&gt; and allow concepts that are impossible to do in a Java type system.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Example?&lt;/em&gt; Here comes Java:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// JAVA&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// you have to type a lot ...&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// we define a variable `numbers` which is of type&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// List of Integer and instantiate it with a new object &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// of type ArrayList of Integer.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numbers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// have a look at numbers.getClass();&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Not possible - type inference:&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// var numbers = new ArrayList&amp;lt;Integer&amp;gt;();&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// #semicolonsFTW&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;To be honest - it`s not fun to write the Java examples as there is too much stuff to type. And the worst part - after providing all the information - at the end the generic types will be erased. E.g. if you look at &lt;code class=&quot;highlighter-rouge&quot;&gt;numbers.getClass();&lt;/code&gt;it is of type &lt;code class=&quot;highlighter-rouge&quot;&gt;class java.util.ArrayList&lt;/code&gt;.  You can run the code online in the &lt;a href=&quot;https://groovyconsole.appspot.com&quot;&gt;Groovy console&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;For the next example I switch to Groovy which is like Java, but friendlier and more concise.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// GROOVY&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// you can run this snippet also in the Groovy console&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Groovy literals for creating Lists!&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ints&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;doubles&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Interesting... whats the result?&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// *.class will call getClass() on every list item&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ints?&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ints&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; 
+&lt;span class=&quot;c1&quot;&gt;// [class java.lang.Integer, class java.lang.Integer, class java.lang.Integer, class java.lang.Integer]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;doubles?&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;doubles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// [class java.lang.Integer, class java.lang.Integer, class java.lang.Integer, class java.lang.Integer]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Damn. I mean… What?&lt;/p&gt;
+
+&lt;p&gt;Exactly - this is the way type inference works in many mainstream languages.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The type information flows only from the leaf of the expression to the root. In that case &lt;code class=&quot;highlighter-rouge&quot;&gt;[1,2,3,4]&lt;/code&gt; provides the type information (List of Integers) to &lt;code class=&quot;highlighter-rouge&quot;&gt;List&amp;lt;Integer&amp;gt; ints&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Flowing in the opposite direction is not possible. The root &lt;code class=&quot;highlighter-rouge&quot;&gt;List&amp;lt;Double&amp;gt; doubles&lt;/code&gt; cannot be inferred to the leaf  &lt;code class=&quot;highlighter-rouge&quot;&gt;[1,2,3,4]&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;next-stop-leaf-of-expression-&quot;&gt;Next Stop: Leaf of expression 🍀&lt;/h2&gt;
+
+&lt;p&gt;Back to Swift. To demonstrate the so-called &lt;em&gt;bi-directional&lt;/em&gt; type inference we begin with an easy example.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;defining a list of Int &lt;em&gt;(or is it a list of Double?)&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// infer the type based on literal [1, 2, 3, 4] to [Int]&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Type information:&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// ROOT &amp;lt;- LEAF &lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;ints&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// infer the type based on [Double] to literal&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Type information:&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// ROOT -&amp;gt; LEAF &lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;doubles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// check the type information:&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ints:&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ints&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;dynamicType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// - Array&amp;lt;Int&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;doubles:&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;doubles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;dynamicType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// - Array&amp;lt;Double&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Awesome!&lt;/strong&gt; The Type Information flows to the leaf of your expression.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Beware: Type information can not be inferred across multiple expressions!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;We can even try to build a more complex expression:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;tupples1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tupples1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;dynamicType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; Array&amp;lt;(Int, Int)&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;tupples2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;CGFloat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?)?]?&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tupples2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;dynamicType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; Optional&amp;lt;Array&amp;lt;Optional&amp;lt;(Optional&amp;lt;Double&amp;gt;, Optional&amp;lt;CGFloat&amp;gt;)&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Why is it working?&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The compiler infers &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt; as &lt;code class=&quot;highlighter-rouge&quot;&gt;Optional&amp;lt;Int&amp;gt;&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;Int&lt;/code&gt; depending on context.&lt;/li&gt;
+  &lt;li&gt;Also &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;0&lt;/code&gt; are &lt;a href=&quot;https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_FloatLiteralConvertible_Protocol/index.html&quot;&gt;FloatLiteralConvertibles&lt;/a&gt; and can initialize a Float&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So far we only applied inference to built-in &lt;em&gt;generic types&lt;/em&gt; like &lt;code class=&quot;highlighter-rouge&quot;&gt;Array&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Optional&lt;/code&gt; and the &lt;code class=&quot;highlighter-rouge&quot;&gt;FloatLiteralConvertible&lt;/code&gt; protocol.
+But knowing that type information flows in an expression let us build flexible constructs ourselves.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;BEWARE: There is a thin line between solving generics and warnings like: &lt;code class=&quot;highlighter-rouge&quot;&gt;Expression was too complex ...&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;write-once-infer-anywhere-&quot;&gt;Write once, infer anywhere 🍵&lt;/h2&gt;
+
+&lt;p&gt;In the next step we write a generic function and make use of type inference to solve the generics.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; &lt;em&gt;We write a generic function, which takes a value and returns a function to check if an optional value of the same type is less than the provided value.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Go:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// in order to call &amp;lt; we need to ensure that T is Comparable&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lessThan&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Comparable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;tx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Bool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tx&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Let`s invoke it:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Version 1:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// based on `10` the types of `lessThan` will be inferred &lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;lessThan10&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lessThan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lessThan10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;dynamicType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; Optional&amp;lt;Int&amp;gt; -&amp;gt; Bool&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Version 2:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// based on the left hand side `CGFloat? -&amp;gt; Bool` the types will be inferred&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;lessThan10X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;CGFloat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Bool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lessThan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lessThan10X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;dynamicType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; Optional&amp;lt;CGFloat&amp;gt; -&amp;gt; Bool&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Version 3:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DoublePredicate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Bool&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// based on the left hand side typealias the types will be inferred&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;lessThan10XX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DoublePredicate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lessThan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; Optional&amp;lt;Double&amp;gt; -&amp;gt; Bool&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;All you need to take care of is that the provided type identifiers work nicely together. We deconstruct Version 3:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;10 can represent &lt;code class=&quot;highlighter-rouge&quot;&gt;Int&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Float&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Double&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;CGFloat&lt;/code&gt; …&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;DoublePredicate&lt;/code&gt; represents a function of type &lt;code class=&quot;highlighter-rouge&quot;&gt;(Double?) -&amp;gt; Bool&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;lessThan&amp;lt;T: Comparable&amp;gt;(tx: T) -&amp;gt; T? -&amp;gt; Bool&lt;/code&gt; wants that &lt;code class=&quot;highlighter-rouge&quot;&gt;tx&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;t&lt;/code&gt;have the same Type (and &lt;code class=&quot;highlighter-rouge&quot;&gt;t&lt;/code&gt;is optional)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;When we apply these constraints to the func we get something like:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;PSEUDOCODE&lt;/strong&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// func lessThan&amp;lt;T: Comparable&amp;gt;(tx: T) -&amp;gt; T? -&amp;gt; Bool&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// let lessThan10XX: DoublePredicate = lessThan(10)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// 1. DoublePredicate return type: &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// -&amp;gt; `T? -&amp;gt; Bool` must be `Double? -&amp;gt; Bool`&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// 2. lessThan(10)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// -&amp;gt; `T` can be  `Int`, `Float`, `Double`, `CGFloat` or even optional of it&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// 3. func lessThan&amp;lt;T: Comparable&amp;gt;(tx: T) -&amp;gt; T? -&amp;gt; Bool &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// -&amp;gt; `T?` is  `Double?`&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// next:  &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// `T`is `Double`&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///  next:&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///  -&amp;gt; `10` -&amp;gt; Double&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;lessThan10XX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Bool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lessThan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;tx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Bool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tx&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;and-now-&quot;&gt;And now? 💭&lt;/h2&gt;
+
+&lt;p&gt;With these concepts in mind, what can we build up … ?&lt;/p&gt;
+
+&lt;div style=&quot;float: right&quot;&gt;&lt;img style=&quot;width:250px&quot; src=&quot;https://raw.githubusercontent.com/symentis/Palau/master/Resources/palau-logo.png&quot; /&gt;&lt;/div&gt;
+
+&lt;p&gt;As an example I want to take a look at &lt;a href=&quot;https://github.com/symentis/Palau&quot;&gt;Palau&lt;/a&gt;, a framework we published on github. It provides easy typesafe &lt;code class=&quot;highlighter-rouge&quot;&gt;NSUserDefaults&lt;/code&gt; access. The whole concept of Palau works only because of  &lt;em&gt;bi-directional&lt;/em&gt; type inference.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Be sure to check out the &lt;a href=&quot;https://github.com/symentis/Palau/blob/master/README.md&quot;&gt;README&lt;/a&gt; and the &lt;a href=&quot;https://github.com/symentis/Palau/blob/
+master/PalauTests/PalauTests.swift&quot;&gt;Tests&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The framework is based on generics and protocols with associated types.
+Only by defining the &lt;strong&gt;return type&lt;/strong&gt; of a computed property we infer the types for the actual implementation throughout the framework.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Pseudocode not working in playground&lt;/em&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;/// Defaults are defined like:&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaults&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultsEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// getting a value from NSUserDefaults looks like&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// Let solve the generics:&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// 1. PalauDefaultsEntry is generic&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultsEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// 2. String conforms to PalauDefaultable&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ValueType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// 3. PalauDefaultsEntry has a computed property value &lt;/span&gt;
+ &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;ValueType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ensure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;from&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;defaults&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;/// 4. String gets the PalauDefaultable methods from an extension of the protocol&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;PalauDefaults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// turns into&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;from&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;defaults&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// Looks reasonable&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;generics-in-your-nsuserdefaults-&quot;&gt;Generics IN your NSUserDefaults 🍢&lt;/h2&gt;
+
+&lt;p&gt;As we kept Palau generic to the bone, you can even go one step further and create NSUserDefaults of type &lt;code class=&quot;highlighter-rouge&quot;&gt;FloatLiteralConvertible&lt;/code&gt;. &lt;em&gt;But we have no generic constants yet - so we need a function&lt;/em&gt;.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;kd&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Palau&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;CoreGraphics&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///  Swift 2.2 does not yet allow generic constants&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///  so we take a function instead.&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// We define a new `NSUserDefaults` value with the key `&#39;floatConvertible&#39;` and&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// can get its `PalauDefaultsEntry` with the `func floatConvertible`.&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaults&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floatConvertible&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;FloatLiteralConvertible&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultsEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;floatConvertible&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// Conform CGFloat to PalauDefaultable for storing&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// Float and Double are supported out of the box&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;CGFloat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;typealias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ValueType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;CGFloat&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And now the generic usage:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;c1&quot;&gt;/// will infer PalauDefaultsEntry&amp;lt;Double&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;doubleEntry&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;floatConvertible&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;doubleEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;doubleX&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; Double&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;doubleEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;doubleX&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// will infer PalauDefaultsEntry&amp;lt;Float&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;floatEntry&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultsEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;floatConvertible&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floatEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;floatX&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; Float&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;floatEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floatX&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// will infer PalauDefaultsEntry&amp;lt;CGFloat&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;cgfEntry&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaultsEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;CGFloat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PalauDefaults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;floatConvertible&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;cgf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cgfEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;cgfX&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cgf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.4&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;cgfEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cgfX&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// -&amp;gt; CGFloat&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The same NSUserDefaults value can be treated as &lt;code class=&quot;highlighter-rouge&quot;&gt;Float&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Double&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;CGFloat&lt;/code&gt;. This is kinda cool.&lt;/p&gt;
+
+&lt;h2 id=&quot;types-ftw-&quot;&gt;Types FTW 🏁&lt;/h2&gt;
+
+&lt;p&gt;Understanding type inference is an important part in order to build reusable code parts that increase productivity and type safety. So type inference and the idea that a type can provide all information in order to be stored in the defaults was the idea behind &lt;a href=&quot;https://github.com/symentis/Palau&quot;&gt;Palau&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;My suggestion:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;In the first time, try to get a feeling when it`s appropriate to provide no type identifier at all.&lt;/li&gt;
+  &lt;li&gt;When you start with generics, try type inference from the root.&lt;/li&gt;
+  &lt;li&gt;Then start to mix all kind of type inference and start to smile when reading “Expression was to complex…”.&lt;/li&gt;
+  &lt;li&gt;If you want to: work through the &lt;a href=&quot;https://github.com/symentis/Palau/blob/master/Sources/PalauDefaultsEntry.swift&quot;&gt;Palau Sourcode&lt;/a&gt; and see it in action.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;the-gist-of-it-&quot;&gt;The gist of it 👻&lt;/h2&gt;
+
+&lt;p&gt;&lt;span id=&quot;gist&quot;&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;noscript&gt;&lt;pre&gt;400: Invalid request
+&lt;/pre&gt;&lt;/noscript&gt;
+&lt;script src=&quot;https://gist.github.com/e4aa241435105472ea0b42f0f847ecd3.js&quot;&gt; &lt;/script&gt;
+
+&lt;p&gt;👻 Feel free to hit me on twitter.
+&lt;a href=&quot;https://twitter.com/elmkretzer&quot;&gt;@elmkretzer&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sun, 01 May 2016 16:00:14 +0200</pubDate>
+        <link>http://elm4ward.github.io/swift/generics/type/inference/2016/05/01/bidirectional.html</link>
+        <guid isPermaLink="true">http://elm4ward.github.io/swift/generics/type/inference/2016/05/01/bidirectional.html</guid>
+        
+        
+        <category>swift</category>
+        
+        <category>generics</category>
+        
+        <category>type</category>
+        
+        <category>inference</category>
+        
+      </item>
     
       <item>
         <title>Erase em all</title>
@@ -20,7 +333,7 @@
 
 &lt;p&gt;&lt;small&gt;*protocol with associated types&lt;/small&gt;&lt;/p&gt;
 
-&lt;p&gt;This is a follow up to &lt;a href=&quot;http://elm4ward.github.io/swift/protocols/2016/04/02/protocollisions.html&quot;&gt;Protocol-lisions&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This is a follow up on &lt;a href=&quot;http://elm4ward.github.io/swift/protocols/2016/04/02/protocollisions.html&quot;&gt;Protocol-lisions&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;That blog post was about a bunch of protocols with associated types. In order to take full advantage of the PAT-Power™  they were coupled in an extension of one of them. And as demonstrated you can add a lot of implicit functionality to your types by going down that road.
 But. Beware. You also get some non trivial stuff to think about.&lt;/p&gt;
@@ -1148,6 +1461,10 @@ But keep in mind:&lt;/p&gt;
   &lt;li&gt;Comonads are great for things where you have a position in a structure (e.g. TreeZipper)&lt;/li&gt;
   &lt;li&gt;Comonads might not be relevant to the code you write next week&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Follow Up&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/swift/functional/comonad/2016/04/06/da-lazy-one.html&quot;&gt;There is a folllow up on how to make that type lazy&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;span id=&quot;gist&quot;&gt;&lt;/span&gt;&lt;/p&gt;
 &lt;noscript&gt;&lt;pre&gt;400: Invalid request

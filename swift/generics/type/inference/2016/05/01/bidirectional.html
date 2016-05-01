@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Back and forth and generics</title>
+  <meta name="description" content="Bi-directional Type Inference">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://elm4ward.github.io/swift/generics/type/inference/2016/05/01/bidirectional.html">
+  <link rel="alternate" type="application/rss+xml" title="Mauersegler.swift" href="http://elm4ward.github.io/feed.xml">
+  
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@elmkretzer" />
+  <meta name="twitter:creator" content="@elmkretzer" />
+  <meta name="twitter:title" content="New Swift Post: Back and forth and generics" />
+  <meta name="twitter:description" content="It`s bi-directional: provide the necessary type information for generics wherever you want to, as long as it is not ambiguous. Read the article on http://elm4ward.github.io" />
+  <meta name="twitter:image" content="http://elm4ward.github.io/assets/bidirectional.jpg" />
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">Mauersegler.swift</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+          <a class="page-link" href="/imprint/">Imprint</a>
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+       <p class="post-meta"><time datetime="2016-05-01T16:00:14+02:00" itemprop="datePublished">05/01/16</time>
+       <small>✔️ Swift 2.2</small>
+       <small>🎯 <a href="#gist">Straight to the Gist</a></small>
+       </p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <h1 id="bi-directional-type-inference">Bi-directional Type Inference</h1>
+
+<blockquote>
+  <p>TL;DR: It`s bi-directional: provide the necessary type information for generics wherever you want to, as long as it is not ambiguous.</p>
+</blockquote>
+
+<p>One of Swift`s best features is well <a href="https://github.com/apple/swift/blob/master/docs/TypeChecker.rst#approach">hidden</a>.</p>
+
+<p>Actually, the less code you write, the more it takes control. <br />
+<em>What?</em> <strong>Yes!</strong><br />
+Let`s talk about type inference.<br />
+Let`s talk about bi-directional type inference.</p>
+
+<h2 id="strongly-typed-meant-to-be-a-lot-of-typing-">Strongly typed meant to be a lot of typing ⌨️</h2>
+
+<p>When you take a look at the <a href="http://www.tiobe.com/tiobe_index">Tiobe Index</a> the PL ranking 1st is Java (April 2016). And I guess quite a lot of people are already familiar with the Java way of generics and types.</p>
+
+<p>First of all, pretty much everything you get from Java generics should work in Swift too. <strong>But</strong> Swift generics are <strong>way more powerful</strong> and allow concepts that are impossible to do in a Java type system.</p>
+
+<p><em>Example?</em> Here comes Java:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// JAVA</span>
+<span class="c1">// you have to type a lot ...</span>
+<span class="c1">// we define a variable `numbers` which is of type</span>
+<span class="c1">// List of Integer and instantiate it with a new object </span>
+<span class="c1">// of type ArrayList of Integer.</span>
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;();</span>
+<span class="c1">// have a look at numbers.getClass();</span>
+<span class="c1">// Not possible - type inference:</span>
+<span class="c1">// var numbers = new ArrayList&lt;Integer&gt;();</span>
+<span class="c1">// #semicolonsFTW</span></code></pre></figure>
+
+<p>To be honest - it`s not fun to write the Java examples as there is too much stuff to type. And the worst part - after providing all the information - at the end the generic types will be erased. E.g. if you look at <code class="highlighter-rouge">numbers.getClass();</code>it is of type <code class="highlighter-rouge">class java.util.ArrayList</code>.  You can run the code online in the <a href="https://groovyconsole.appspot.com">Groovy console</a>.</p>
+
+<p>For the next example I switch to Groovy which is like Java, but friendlier and more concise.</p>
+
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="c1">// GROOVY</span>
+<span class="c1">// you can run this snippet also in the Groovy console</span>
+<span class="c1">// Groovy literals for creating Lists!</span>
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">ints</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="mi">3</span><span class="o">,</span><span class="mi">4</span><span class="o">]</span>
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">doubles</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="mi">3</span><span class="o">,</span><span class="mi">4</span><span class="o">]</span>
+<span class="c1">// Interesting... whats the result?</span>
+<span class="c1">// *.class will call getClass() on every list item</span>
+<span class="n">println</span><span class="o">(</span><span class="s2">"ints?"</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="n">ints</span><span class="o">*.</span><span class="na">class</span><span class="o">)</span> 
+<span class="c1">// [class java.lang.Integer, class java.lang.Integer, class java.lang.Integer, class java.lang.Integer]</span>
+<span class="n">println</span><span class="o">(</span><span class="s2">"doubles?"</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="n">doubles</span><span class="o">*.</span><span class="na">class</span><span class="o">)</span>
+<span class="c1">// [class java.lang.Integer, class java.lang.Integer, class java.lang.Integer, class java.lang.Integer]</span></code></pre></figure>
+
+<p>Damn. I mean… What?</p>
+
+<p>Exactly - this is the way type inference works in many mainstream languages.</p>
+
+<ul>
+  <li>The type information flows only from the leaf of the expression to the root. In that case <code class="highlighter-rouge">[1,2,3,4]</code> provides the type information (List of Integers) to <code class="highlighter-rouge">List&lt;Integer&gt; ints</code>.</li>
+  <li>Flowing in the opposite direction is not possible. The root <code class="highlighter-rouge">List&lt;Double&gt; doubles</code> cannot be inferred to the leaf  <code class="highlighter-rouge">[1,2,3,4]</code>.</li>
+</ul>
+
+<h2 id="next-stop-leaf-of-expression-">Next Stop: Leaf of expression 🍀</h2>
+
+<p>Back to Swift. To demonstrate the so-called <em>bi-directional</em> type inference we begin with an easy example.</p>
+
+<ul>
+  <li>defining a list of Int <em>(or is it a list of Double?)</em></li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// infer the type based on literal [1, 2, 3, 4] to [Int]</span>
+<span class="c1">// Type information:</span>
+<span class="c1">// ROOT &lt;- LEAF </span>
+<span class="k">let</span> <span class="nv">ints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="c1">// infer the type based on [Double] to literal</span>
+<span class="c1">// Type information:</span>
+<span class="c1">// ROOT -&gt; LEAF </span>
+<span class="k">let</span> <span class="nv">doubles</span><span class="p">:</span> <span class="p">[</span><span class="kt">Double</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="c1">// check the type information:</span>
+<span class="nf">print</span><span class="p">(</span><span class="s">"ints:"</span><span class="p">,</span> <span class="n">ints</span><span class="o">.</span><span class="k">dynamicType</span><span class="p">)</span>
+<span class="c1">// - Array&lt;Int&gt;</span>
+<span class="nf">print</span><span class="p">(</span><span class="s">"doubles:"</span><span class="p">,</span> <span class="n">doubles</span><span class="o">.</span><span class="k">dynamicType</span><span class="p">)</span>
+<span class="c1">// - Array&lt;Double&gt;</span></code></pre></figure>
+
+<p><strong>Awesome!</strong> The Type Information flows to the leaf of your expression.</p>
+
+<blockquote>
+  <p>Beware: Type information can not be inferred across multiple expressions!</p>
+</blockquote>
+
+<p>We can even try to build a more complex expression:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="nv">tupples1</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">tupples1</span><span class="o">.</span><span class="k">dynamicType</span><span class="p">)</span>
+<span class="c1">// -&gt; Array&lt;(Int, Int)&gt;</span>
+<span class="k">let</span> <span class="nv">tupples2</span><span class="p">:</span> <span class="p">[(</span><span class="kt">Double</span><span class="p">?,</span> <span class="kt">CGFloat</span><span class="p">?)?]?</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">tupples2</span><span class="o">.</span><span class="k">dynamicType</span><span class="p">)</span>
+<span class="c1">// -&gt; Optional&lt;Array&lt;Optional&lt;(Optional&lt;Double&gt;, Optional&lt;CGFloat&gt;)&gt;&gt;&gt;</span></code></pre></figure>
+
+<p>Why is it working?</p>
+
+<ul>
+  <li>The compiler infers <code class="highlighter-rouge">1</code> as <code class="highlighter-rouge">Optional&lt;Int&gt;</code> or <code class="highlighter-rouge">Int</code> depending on context.</li>
+  <li>Also <code class="highlighter-rouge">1</code> and <code class="highlighter-rouge">0</code> are <a href="https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_FloatLiteralConvertible_Protocol/index.html">FloatLiteralConvertibles</a> and can initialize a Float</li>
+</ul>
+
+<p>So far we only applied inference to built-in <em>generic types</em> like <code class="highlighter-rouge">Array</code>, <code class="highlighter-rouge">Optional</code> and the <code class="highlighter-rouge">FloatLiteralConvertible</code> protocol.
+But knowing that type information flows in an expression let us build flexible constructs ourselves.</p>
+
+<blockquote>
+  <p>BEWARE: There is a thin line between solving generics and warnings like: <code class="highlighter-rouge">Expression was too complex ...</code>.</p>
+</blockquote>
+
+<h2 id="write-once-infer-anywhere-">Write once, infer anywhere 🍵</h2>
+
+<p>In the next step we write a generic function and make use of type inference to solve the generics.</p>
+
+<p><strong>Goal:</strong> <em>We write a generic function, which takes a value and returns a function to check if an optional value of the same type is less than the provided value.</em></p>
+
+<p><strong>Go:</strong></p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// in order to call &lt; we need to ensure that T is Comparable</span>
+<span class="kd">func</span> <span class="n">lessThan</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">Comparable</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">tx</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">T</span><span class="p">?</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span> <span class="n">t</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="nv">$0</span> <span class="o">&lt;</span> <span class="n">tx</span> <span class="p">}</span> <span class="p">??</span> <span class="kc">false</span> <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Let`s invoke it:</p>
+
+<p><strong>Version 1:</strong></p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// based on `10` the types of `lessThan` will be inferred </span>
+<span class="k">let</span> <span class="nv">lessThan10</span> <span class="o">=</span> <span class="nf">lessThan</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">lessThan10</span><span class="o">.</span><span class="k">dynamicType</span><span class="p">)</span>
+<span class="c1">// -&gt; Optional&lt;Int&gt; -&gt; Bool</span></code></pre></figure>
+
+<p><strong>Version 2:</strong></p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// based on the left hand side `CGFloat? -&gt; Bool` the types will be inferred</span>
+<span class="k">let</span> <span class="nv">lessThan10X</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">?</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="nf">lessThan</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">lessThan10X</span><span class="o">.</span><span class="k">dynamicType</span><span class="p">)</span>
+<span class="c1">// -&gt; Optional&lt;CGFloat&gt; -&gt; Bool</span></code></pre></figure>
+
+<p><strong>Version 3:</strong></p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">typealias</span> <span class="kt">DoublePredicate</span> <span class="o">=</span> <span class="p">(</span><span class="kt">Double</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="c1">// based on the left hand side typealias the types will be inferred</span>
+<span class="k">let</span> <span class="nv">lessThan10XX</span><span class="p">:</span> <span class="kt">DoublePredicate</span> <span class="o">=</span> <span class="nf">lessThan</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="c1">// -&gt; Optional&lt;Double&gt; -&gt; Bool</span></code></pre></figure>
+
+<p>All you need to take care of is that the provided type identifiers work nicely together. We deconstruct Version 3:</p>
+
+<ul>
+  <li>10 can represent <code class="highlighter-rouge">Int</code>, <code class="highlighter-rouge">Float</code>, <code class="highlighter-rouge">Double</code>, <code class="highlighter-rouge">CGFloat</code> …</li>
+  <li><code class="highlighter-rouge">DoublePredicate</code> represents a function of type <code class="highlighter-rouge">(Double?) -&gt; Bool</code></li>
+  <li><code class="highlighter-rouge">lessThan&lt;T: Comparable&gt;(tx: T) -&gt; T? -&gt; Bool</code> wants that <code class="highlighter-rouge">tx</code> and <code class="highlighter-rouge">t</code>have the same Type (and <code class="highlighter-rouge">t</code>is optional)</li>
+</ul>
+
+<p>When we apply these constraints to the func we get something like:</p>
+
+<p><strong>PSEUDOCODE</strong></p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">///</span>
+<span class="c1">/// func lessThan&lt;T: Comparable&gt;(tx: T) -&gt; T? -&gt; Bool</span>
+<span class="c1">///</span>
+<span class="c1">/// let lessThan10XX: DoublePredicate = lessThan(10)</span>
+<span class="c1">///</span>
+<span class="c1">/// 1. DoublePredicate return type: </span>
+<span class="c1">/// -&gt; `T? -&gt; Bool` must be `Double? -&gt; Bool`</span>
+<span class="c1">/// 2. lessThan(10)</span>
+<span class="c1">/// -&gt; `T` can be  `Int`, `Float`, `Double`, `CGFloat` or even optional of it</span>
+<span class="c1">/// 3. func lessThan&lt;T: Comparable&gt;(tx: T) -&gt; T? -&gt; Bool </span>
+<span class="c1">/// -&gt; `T?` is  `Double?`</span>
+<span class="c1">/// </span>
+<span class="c1">/// next:  </span>
+<span class="c1">/// `T`is `Double`</span>
+<span class="c1">///  next:</span>
+<span class="c1">///  -&gt; `10` -&gt; Double</span>
+<span class="k">let</span> <span class="nv">lessThan10XX</span><span class="p">:</span> <span class="kt">Double</span><span class="p">?</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kd">func</span> <span class="nf">lessThan</span><span class="p">(</span><span class="nv">tx</span><span class="p">:</span> <span class="kt">Double</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Double</span><span class="p">?</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span> <span class="n">t</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="nv">$0</span> <span class="o">&lt;</span> <span class="n">tx</span> <span class="p">}</span> <span class="p">??</span> <span class="kc">false</span> <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="and-now-">And now? 💭</h2>
+
+<p>With these concepts in mind, what can we build up … ?</p>
+
+<div style="float: right"><img style="width:250px" src="https://raw.githubusercontent.com/symentis/Palau/master/Resources/palau-logo.png" /></div>
+
+<p>As an example I want to take a look at <a href="https://github.com/symentis/Palau">Palau</a>, a framework we published on github. It provides easy typesafe <code class="highlighter-rouge">NSUserDefaults</code> access. The whole concept of Palau works only because of  <em>bi-directional</em> type inference.</p>
+
+<blockquote>
+  <p>Be sure to check out the <a href="https://github.com/symentis/Palau/blob/master/README.md">README</a> and the <a href="https://github.com/symentis/Palau/blob/
+master/PalauTests/PalauTests.swift">Tests</a></p>
+</blockquote>
+
+<p>The framework is based on generics and protocols with associated types.
+Only by defining the <strong>return type</strong> of a computed property we infer the types for the actual implementation throughout the framework.</p>
+
+<p><em>Pseudocode not working in playground</em></p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">/// Defaults are defined like:</span>
+<span class="kd">extension</span> <span class="kt">PalauDefaults</span> <span class="p">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">PalauDefaultsEntry</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="nf">value</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span> <span class="p">}</span>
+    <span class="k">set</span> <span class="p">{</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">/// getting a value from NSUserDefaults looks like</span>
+<span class="k">let</span> <span class="nv">value</span> <span class="o">=</span> <span class="kt">PalauDefaults</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">value</span>
+<span class="c1">///</span>
+<span class="c1">/// Let solve the generics:</span>
+<span class="c1">///</span>
+<span class="c1">/// 1. PalauDefaultsEntry is generic</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">PalauDefaultsEntry</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">PalauDefaultable</span><span class="o">&gt;</span> <span class="p">{}</span>
+<span class="c1">///</span>
+<span class="c1">/// 2. String conforms to PalauDefaultable</span>
+<span class="kd">extension</span> <span class="kt">String</span><span class="p">:</span> <span class="kt">PalauDefaultable</span> <span class="p">{</span>
+  <span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">ValueType</span> <span class="o">=</span> <span class="kt">String</span>
+<span class="p">}</span>
+<span class="c1">/// 3. PalauDefaultsEntry has a computed property value </span>
+ <span class="kd">public</span> <span class="k">var</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">T</span><span class="o">.</span><span class="kt">ValueType</span><span class="p">?</span> <span class="p">{</span>
+    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="nf">ensure</span><span class="p">(</span><span class="kt">T</span><span class="o">.</span><span class="nf">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">defaults</span><span class="p">))</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">/// 4. String gets the PalauDefaultable methods from an extension of the protocol</span>
+<span class="kt">PalauDefaults</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">value</span>
+<span class="c1">/// turns into</span>
+<span class="kt">String</span><span class="o">.</span><span class="nf">get</span><span class="p">(</span><span class="s">"name"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">defaults</span><span class="p">)</span>
+<span class="c1">/// Looks reasonable</span></code></pre></figure>
+
+<h2 id="generics-in-your-nsuserdefaults-">Generics IN your NSUserDefaults 🍢</h2>
+
+<p>As we kept Palau generic to the bone, you can even go one step further and create NSUserDefaults of type <code class="highlighter-rouge">FloatLiteralConvertible</code>. <em>But we have no generic constants yet - so we need a function</em>.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">Palau</span>
+<span class="kd">import</span> <span class="kt">CoreGraphics</span>
+<span class="c1">///</span>
+<span class="c1">///  Swift 2.2 does not yet allow generic constants</span>
+<span class="c1">///  so we take a function instead.</span>
+<span class="c1">/// We define a new `NSUserDefaults` value with the key `'floatConvertible'` and</span>
+<span class="c1">/// can get its `PalauDefaultsEntry` with the `func floatConvertible`.</span>
+<span class="kd">extension</span> <span class="kt">PalauDefaults</span> <span class="p">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="n">floatConvertible</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">FloatLiteralConvertible</span><span class="o">&gt;</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">PalauDefaultsEntry</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nf">value</span><span class="p">(</span><span class="s">"floatConvertible"</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">/// Conform CGFloat to PalauDefaultable for storing</span>
+<span class="c1">/// Float and Double are supported out of the box</span>
+<span class="kd">extension</span> <span class="kt">CGFloat</span><span class="p">:</span> <span class="kt">PalauDefaultable</span> <span class="p">{</span>
+  <span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">ValueType</span> <span class="o">=</span> <span class="kt">CGFloat</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>And now the generic usage:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">/// will infer PalauDefaultsEntry&lt;Double&gt;</span>
+<span class="k">var</span> <span class="nv">doubleEntry</span> <span class="o">=</span> <span class="kt">PalauDefaults</span><span class="o">.</span><span class="nf">floatConvertible</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">double</span> <span class="o">=</span> <span class="n">doubleEntry</span><span class="o">.</span><span class="n">value</span> <span class="p">??</span> <span class="mi">0</span>
+<span class="k">let</span> <span class="nv">doubleX</span> <span class="o">=</span> <span class="n">double</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="c1">// -&gt; Double</span>
+<span class="n">doubleEntry</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">doubleX</span>
+<span class="c1">/// </span>
+<span class="c1">/// will infer PalauDefaultsEntry&lt;Float&gt;</span>
+<span class="k">var</span> <span class="nv">floatEntry</span><span class="p">:</span> <span class="kt">PalauDefaultsEntry</span><span class="o">&lt;</span><span class="kt">Float</span><span class="o">&gt;</span> <span class="o">=</span> <span class="kt">PalauDefaults</span><span class="o">.</span><span class="nf">floatConvertible</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">float</span> <span class="o">=</span> <span class="n">floatEntry</span><span class="o">.</span><span class="n">value</span> <span class="p">??</span> <span class="mi">0</span>
+<span class="k">let</span> <span class="nv">floatX</span> <span class="o">=</span> <span class="n">float</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="c1">// -&gt; Float</span>
+<span class="n">floatEntry</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">floatX</span>
+<span class="c1">///</span>
+<span class="c1">/// will infer PalauDefaultsEntry&lt;CGFloat&gt;</span>
+<span class="k">var</span> <span class="nv">cgfEntry</span><span class="p">:</span> <span class="kt">PalauDefaultsEntry</span><span class="o">&lt;</span><span class="kt">CGFloat</span><span class="o">&gt;</span> <span class="o">=</span> <span class="kt">PalauDefaults</span><span class="o">.</span><span class="nf">floatConvertible</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">cgf</span> <span class="o">=</span> <span class="n">cgfEntry</span><span class="o">.</span><span class="n">value</span> <span class="p">??</span> <span class="mi">0</span>
+<span class="k">let</span> <span class="nv">cgfX</span> <span class="o">=</span> <span class="n">cgf</span> <span class="o">+</span> <span class="mf">1.4</span>
+<span class="n">cgfEntry</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">cgfX</span>
+<span class="c1">// -&gt; CGFloat</span></code></pre></figure>
+
+<p>The same NSUserDefaults value can be treated as <code class="highlighter-rouge">Float</code>, <code class="highlighter-rouge">Double</code> or <code class="highlighter-rouge">CGFloat</code>. This is kinda cool.</p>
+
+<h2 id="types-ftw-">Types FTW 🏁</h2>
+
+<p>Understanding type inference is an important part in order to build reusable code parts that increase productivity and type safety. So type inference and the idea that a type can provide all information in order to be stored in the defaults was the idea behind <a href="https://github.com/symentis/Palau">Palau</a>.</p>
+
+<p>My suggestion:</p>
+
+<ul>
+  <li>In the first time, try to get a feeling when it`s appropriate to provide no type identifier at all.</li>
+  <li>When you start with generics, try type inference from the root.</li>
+  <li>Then start to mix all kind of type inference and start to smile when reading “Expression was to complex…”.</li>
+  <li>If you want to: work through the <a href="https://github.com/symentis/Palau/blob/master/Sources/PalauDefaultsEntry.swift">Palau Sourcode</a> and see it in action.</li>
+</ul>
+
+<h2 id="the-gist-of-it-">The gist of it 👻</h2>
+
+<p><span id="gist"></span></p>
+<noscript><pre>400: Invalid request
+</pre></noscript>
+<script src="https://gist.github.com/e4aa241435105472ea0b42f0f847ecd3.js"> </script>
+
+<p>👻 Feel free to hit me on twitter.
+<a href="https://twitter.com/elmkretzer">@elmkretzer</a></p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-4">
+        <p>Mauersegler.swift - In the long term, this will be a blog about using Swift. 
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
